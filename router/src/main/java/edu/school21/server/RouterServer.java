@@ -1,7 +1,7 @@
 package edu.school21.server;
 
+import edu.school21.handlers.*;
 import edu.school21.listeners.ServerListener;
-import edu.school21.utils.Utils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -10,7 +10,6 @@ import java.net.StandardSocketOptions;
 import java.nio.channels.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
 
 @Component
 public class RouterServer {
@@ -40,11 +39,12 @@ public class RouterServer {
 
             System.out.println("listening on ports 5000 and 5001");
 
-            brokerServer.accept(null, new RouterConnectionHandler(routingTable, brokerServer));
-            marketServer.accept(null, new RouterConnectionHandler(routingTable, marketServer));
+            Handler<String> handler = initHandlers(routingTable);
+
+            brokerServer.accept(null, new RouterConnectionHandler(routingTable, brokerServer, handler));
+            marketServer.accept(null, new RouterConnectionHandler(routingTable, marketServer, handler));
 
             listener.join();
-//            listening();
 
         } catch (IOException | InterruptedException ex) {
             marketServer.close();
@@ -56,49 +56,18 @@ public class RouterServer {
         marketServer.close();
     }
 
-    /*private void listening() throws IOException {
-        System.out.println("Starting listening....");
-        while (true) {
-            Future<AsynchronousSocketChannel> acceptMarket = marketServer.accept();
-            Future<AsynchronousSocketChannel> acceptBroker = brokerServer.accept();
-            try {
-                AsynchronousSocketChannel client = acceptMarket.get();
-                Utils.sendRequest(String.valueOf(id), client);
-                routingTable.put(id, client);
-                System.out.println("Connected " + id);
-                Worker worker = new Worker(routingTable, client, id);
-                id++;
-                *//*Callable<String> worker = new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
+    public Handler<String> initHandlers(Map<String, AsynchronousSocketChannel> routingTable) {
+        Handler<String> requestHandler = new RequestHandler(HandlerType.REQUEST, routingTable);
+        Handler<String> forwardHandler = new ForwardHandler(HandlerType.FORWARD, routingTable);
+        Handler<String> validationHandler = new ValidationHandler(HandlerType.VALIDATION, routingTable);
+        Handler<String> errorHandler = new ErrorHandler(HandlerType.ERROR, routingTable);
+        Handler<String> disconnectHandler = new DisconnectHandler(HandlerType.DISCONNECT, routingTable);
 
-                        Future<Integer> readResult;
-                        String response;
-                        while (client.isOpen()) {
-                            ByteBuffer buffer = ByteBuffer.allocate(50);
-                            readResult = client.read(buffer);
-                            readResult.get();
-                            response = new String(buffer.array()).trim();
+        requestHandler.setNextHandler(validationHandler);
+        validationHandler.setNextHandler(forwardHandler);
+        forwardHandler.setNextHandler(errorHandler);
+        errorHandler.setNextHandler(disconnectHandler);
 
-                            if (response.equalsIgnoreCase("exit")) {
-                                globalMessage(client.getRemoteAddress().toString());
-                                client.close();
-                                return "exit";
-                            }
-
-                            Utils.sendRequest(response, client);
-                            buffer.clear();
-                        }
-
-                        client.close();
-                        return "asd";
-                    }
-                };*//*
-                taskExecutor.submit(worker);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                return ;
-            }
-        }
-    }*/
+        return requestHandler;
+    }
 }

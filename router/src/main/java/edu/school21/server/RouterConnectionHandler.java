@@ -1,7 +1,6 @@
 package edu.school21.server;
 
-import edu.school21.exceptions.InvalidFixMessage;
-import edu.school21.models.FixMessage;
+import edu.school21.handlers.Handler;
 import edu.school21.utils.Utils;
 
 import java.io.IOException;
@@ -21,12 +20,14 @@ public class RouterConnectionHandler implements CompletionHandler<AsynchronousSo
 	private final AsynchronousServerSocketChannel server;
 	private static int id = 777000;
 	private Future<String> submit;
-	private FixMessage fixMessage;
+	private Handler<String> handler;
 
 	public RouterConnectionHandler(Map<String, AsynchronousSocketChannel> routingTable,
-								   AsynchronousServerSocketChannel server) {
+								   AsynchronousServerSocketChannel server,
+								   Handler<String> handler) {
 		this.routingTable = routingTable;
 		this.server = server;
+		this.handler = handler;
 	}
 
 	@Override
@@ -44,57 +45,25 @@ public class RouterConnectionHandler implements CompletionHandler<AsynchronousSo
 		}
 		System.out.println("Connected: " + id + " - port " + port);
 
-		Worker worker = new Worker(routingTable, client, id, port);
+		Worker worker = new Worker(client, id, port, handler);
 		id++;
 
-		try {
-			while (true) {
-				submit = Executors.newSingleThreadExecutor().submit(worker);
-				String response = submit.get();
-				System.out.println("Response: " + response);
+		String response;
 
-				forwardMessage(response, port);
-
-			/*	if (response.equals("error")) {
-					continue ;
-				}*/
-
-				if (response.contains("exit#")) {
-					System.out.println("Client disconnected: " + response.split("#")[1]);
-					break;
-				}
+		while (true) {
+			submit = Executors.newSingleThreadExecutor().submit(worker);
+			try {
+				response = submit.get();
+				System.out.println("Handler returned: " + response);
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+				break ;
 			}
-		} catch (InterruptedException | ExecutionException | IOException e) {
-			e.printStackTrace(System.out);
-		}
-	}
-
-	private void forwardMessage(String message, int port) throws IOException {
-		fixMessage = new FixMessage(message, true);
-		String sender = fixMessage.getSenderId();
-		String target = fixMessage.getTargetId();
-
-		try {
-			fixMessage.verifyChecksum();
-		} catch (InvalidFixMessage e) {
-			e.printStackTrace();
-			Utils.sendRequest("Checksum do not match", routingTable.get(sender));
-			return ;
-		}
-
-		AsynchronousSocketChannel client = routingTable.get(target);
-		if (client == null) {
-			Utils.sendRequest("error", routingTable.get(sender));
-		} else {
-//			System.out.println("forwarding to port: " + port);
-			Utils.sendRequest(message, client);
-		}
-
-		/*for (String id : routingTable.keySet()) {
-			if (id.equals(msg[0])) {
-				Utils.sendRequest(message, routingTable.get(id));
+			if (!routingTable.containsKey(String.valueOf(worker.getId()))) {
+				break ;
 			}
-		}*/
+		}
+
 	}
 
 	@Override
@@ -108,11 +77,5 @@ public class RouterConnectionHandler implements CompletionHandler<AsynchronousSo
 		} else {
 			throw new IOException("Unknown address type");
 		}
-	}
-
-	private boolean checksum(String message) {
-
-
-		return true;
 	}
 }

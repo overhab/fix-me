@@ -1,5 +1,6 @@
 package edu.school21.models;
 
+import edu.school21.handlers.*;
 import edu.school21.utils.Utils;
 
 import java.io.IOException;
@@ -9,11 +10,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 
-public abstract class Client {
+public abstract class Client<T> {
 
 	protected String id;
 	protected AsynchronousSocketChannel client;
-	protected FixMessage fixMessage;
+	protected FixMessage fixMessage = new FixMessage();
+	protected Handler<T> handler;
 
 	public Client() {
 	}
@@ -42,4 +44,6 @@ public abstract class Client {
 	public void requestId() {
 		Utils.sendRequest(id, client);
 	}
+
+	public abstract Handler<T> initHandlers();
 }

@@ -17,7 +17,7 @@ public class Utils {
 		byteCount = channel.write(buffer);
 
 		try {
-			System.out.println("SENDING MESSAGE: \n[" + msg + "]\nbytes: " + byteCount.get() + "\n-----------------");
+			System.out.println("SENDING MESSAGE: [" + msg + "]\nbytes: " + byteCount.get() + "\n-----------------");
 		} catch (ExecutionException | InterruptedException e) {
 			e.printStackTrace();
 		}

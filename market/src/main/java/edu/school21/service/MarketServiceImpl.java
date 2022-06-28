@@ -21,7 +21,22 @@ public class MarketServiceImpl implements MarketService {
 
 	@Override
 	public Market createMarket() {
-		List<Stock> stocks = stockRepository.findAllWithLimit();
+		List<String> stocks = stockRepository.findAllWithLimit();
 		return new Market(stocks);
+	}
+
+	@Override
+	public Stock findStockByName(String name) {
+		return stockRepository.findByName(name);
+	}
+
+	@Override
+	public void addStock(Stock stock) {
+		stockRepository.save(stock);
+	}
+
+	@Override
+	public void updateStock(Stock stock) {
+		stockRepository.update(stock);
 	}
 }

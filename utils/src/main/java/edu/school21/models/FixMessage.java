@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.sound.midi.Instrument;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -67,7 +66,7 @@ public class FixMessage {
         this.senderId = parts[3].substring(parts[3].indexOf("=") + 1);
     }
 
-    public void parseFixMessage() {
+    public void parseFixMessage() throws NullPointerException {
         StringBuilder body = new StringBuilder();
 
         body.append("11=" + orderId + "|");
@@ -75,7 +74,7 @@ public class FixMessage {
         body.append("55=" + instrument + "|");
 
         if (type.equals("buy") || type.equals("sell") || type.equals("1") || type.equals("2")) {
-            body.append("54=" + (type.equals("buy") ? 1 : 2) + "|");
+            body.append("54=" + (type.equals("buy") ? "1" : "2") + "|");
         } else {
             throw new InvalidFixMessage("Wrong type of transaction");
         }
@@ -101,7 +100,7 @@ public class FixMessage {
         checksum.update(fixMessageWithoutChecksum[0].getBytes());
         long checksumMod = checksum.getValue() % 256;
         if (checksumMod != Integer.parseInt(fixMessageWithoutChecksum[1])) {
-            throw new InvalidFixMessage("Checksum do not match");
+            throw new InvalidFixMessage("checksum do not match");
         }
     }
 }

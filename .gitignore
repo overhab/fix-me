@@ -4,5 +4,7 @@ fix-me.iml
 /market/target/
 /utils/target/
 /utils/src/main/java/edu/school21/app/
+/router/src/main/resources/db.properties
+/market/src/main/resources/db.properties
 /.idea
 todo.txt

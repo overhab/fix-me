@@ -1,5 +1,7 @@
 package edu.school21.server;
 
+import edu.school21.exceptions.InvalidFixMessage;
+import edu.school21.handlers.Handler;
 import edu.school21.models.Client;
 import edu.school21.models.FixMessage;
 import edu.school21.utils.Utils;
@@ -28,7 +30,7 @@ public class BrokerClient extends Client {
             try {
                 fixMessage = new FixMessage(input);
                 fixMessage.parseFixMessage();
-            } catch (InputMismatchException e) {
+            } catch (InputMismatchException | NumberFormatException | InvalidFixMessage e) {
                 System.out.println("[ERROR]: " + e.getMessage());
                 continue;
             }
@@ -40,10 +42,13 @@ public class BrokerClient extends Client {
             }
 
             response = Utils.getResponse(client);
-            if (processResponse(response) == 8) {
+            int code = processResponse(response);
+            if (code == 2) {
                 System.out.println("Executed");
-            } else {
+            } else if (code == 8) {
                 System.out.println("Rejected");
+            } else {
+                System.out.println(response);
             }
         }
 
@@ -69,8 +74,17 @@ public class BrokerClient extends Client {
     }
 
     private int processResponse(String response) {
-        FixMessage fix = new FixMessage(response, true);
-
+        FixMessage fix;
+        try {
+            fix = new FixMessage(response, true);
+        } catch (IndexOutOfBoundsException e) {
+            return -1;
+        }
         return fix.getStatus();
+    }
+
+    @Override
+    public Handler initHandlers() {
+        return null;
     }
 }

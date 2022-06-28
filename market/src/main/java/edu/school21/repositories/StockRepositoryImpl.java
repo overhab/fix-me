@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component("stockRepository")
@@ -27,6 +28,8 @@ public class StockRepositoryImpl implements StockRepository{
 				resultSet.getInt("quantity"),
 				resultSet.getFloat("price"));
 	};
+
+
 
 	@Override
 	public Stock findById(Long id) {
@@ -47,7 +50,7 @@ public class StockRepositoryImpl implements StockRepository{
 
 	@Override
 	public void update(Stock entity) {
-		jdbcTemplate.update("update stocks set name = :name, quantity = :quantity, price = :price",
+		jdbcTemplate.update("update stocks set name = :name, quantity = :quantity, price = :price where id = :id",
 				new BeanPropertySqlParameterSource(entity));
 	}
 
@@ -57,7 +60,13 @@ public class StockRepositoryImpl implements StockRepository{
 	}
 
 	@Override
-	public List<Stock> findAllWithLimit() {
-		return jdbcTemplate.query("select * from stocks order by random() limit 4", stockRowMapper);
+	public List<String> findAllWithLimit() {
+		return jdbcTemplate.query("select name from stocks order by random() limit 4", (rs, rowNum) -> rs.getString("name"));
+	}
+
+	@Override
+	public Stock findByName(String name) {
+		return jdbcTemplate.queryForObject("select * from stocks where name = :name",
+				new MapSqlParameterSource("name", name), stockRowMapper);
 	}
 }

@@ -5,18 +5,27 @@ import java.util.List;
 
 public class Market {
 
-    private List<Stock> stocks;
+    private List<String> stocks;
 
-    public Market(List<Stock> stocks) {
+    public Market(List<String> stocks) {
         this.stocks = stocks;
     }
 
-    public List<Stock> getStocks() {
+    public List<String> getStocks() {
         return stocks;
     }
 
-    public void setStocks(List<Stock> stocks) {
+    public void setStocks(List<String> stocks) {
         this.stocks = stocks;
+    }
+
+    public String findStock(String stock) {
+        for (String s : stocks) {
+            if (s.equals(stock)) {
+                return s;
+            }
+        }
+        return null;
     }
 
     @Override
