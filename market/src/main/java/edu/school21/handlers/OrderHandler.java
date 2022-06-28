@@ -2,7 +2,9 @@ package edu.school21.handlers;
 
 import edu.school21.models.FixMessage;
 import edu.school21.models.Market;
+import edu.school21.models.Stock;
 import edu.school21.service.MarketService;
+import edu.school21.utils.Utils;
 
 import java.nio.channels.AsynchronousSocketChannel;
 
@@ -15,14 +17,32 @@ public class OrderHandler extends MarketHandler {
 	@Override
 	public String handle(FixMessage fixMessage, AsynchronousSocketChannel socket) {
 		try {
-			String instrument = fixMessage.getInstrument();
-			String stock = market.findStock(instrument);
-
+			Stock stock = marketService.findStockByName(fixMessage.getInstrument());
 			if (stock == null) {
 				ERROR_CODE = 1; // instrument not found
 				return nextHandler.handle(fixMessage, socket);
 			}
-			return nextHandler.handle(fixMessage, socket);
+
+			if (stock.getQuantity() < fixMessage.getQuantity()) {
+				fixMessage.setStatus(8);
+			} else {
+				if (fixMessage.getType().equals("buy") || fixMessage.getType().equals("1")) {
+					stock.setQuantity(stock.getQuantity() - fixMessage.getQuantity());
+				} else if (fixMessage.getType().equals("sell") || fixMessage.getType().equals("2")) {
+					stock.setQuantity(stock.getQuantity() + fixMessage.getQuantity());
+				}
+				marketService.updateStock(stock);
+				fixMessage.setStatus(2);
+			}
+
+			String from = fixMessage.getSenderId();
+			fixMessage.setSenderId(fixMessage.getTargetId());
+			fixMessage.setTargetId(from);
+			fixMessage.parseFixMessage();
+			Utils.sendRequest(fixMessage.getFixMessage(), socket);
+			return "Order " + fixMessage.getOrderId() + " completed. " +
+					"Status: " + ((fixMessage.getStatus() == 8) ? "rejected" : "executed");
+
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 			ERROR_CODE = 2; // No stock found

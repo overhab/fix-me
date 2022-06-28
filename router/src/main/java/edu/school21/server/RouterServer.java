@@ -58,14 +58,10 @@ public class RouterServer {
 
     public Handler<String> initHandlers(Map<String, AsynchronousSocketChannel> routingTable) {
         Handler<String> requestHandler = new RequestHandler(HandlerType.REQUEST, routingTable);
-        Handler<String> forwardHandler = new ForwardHandler(HandlerType.FORWARD, routingTable);
-        Handler<String> validationHandler = new ValidationHandler(HandlerType.VALIDATION, routingTable);
         Handler<String> errorHandler = new ErrorHandler(HandlerType.ERROR, routingTable);
         Handler<String> disconnectHandler = new DisconnectHandler(HandlerType.DISCONNECT, routingTable);
 
-        requestHandler.setNextHandler(validationHandler);
-        validationHandler.setNextHandler(forwardHandler);
-        forwardHandler.setNextHandler(errorHandler);
+        requestHandler.setNextHandler(errorHandler);
         errorHandler.setNextHandler(disconnectHandler);
 
         return requestHandler;

@@ -41,13 +41,9 @@ public class MarketClient extends Client<FixMessage> {
 	@Override
 	public Handler<FixMessage> initHandlers() {
 		Handler<FixMessage> order = new OrderHandler(HandlerType.ORDER, marketService, market);
-		Handler<FixMessage> stock = new StockHandler(HandlerType.STOCK, marketService, market);
-		Handler<FixMessage> response = new ResponseHandler(HandlerType.RESPONSE, marketService, market);
 		Handler<FixMessage> error = new MarketErrorHandler(HandlerType.ERROR, marketService, market);
 
-		order.setNextHandler(stock);
-		stock.setNextHandler(response);
-		response.setNextHandler(error);
+		order.setNextHandler(error);
 
 		return order;
 	}

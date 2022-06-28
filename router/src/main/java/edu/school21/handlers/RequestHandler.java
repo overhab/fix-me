@@ -1,5 +1,9 @@
 package edu.school21.handlers;
 
+import edu.school21.exceptions.InvalidFixMessage;
+import edu.school21.models.FixMessage;
+import edu.school21.utils.Utils;
+
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Map;
@@ -13,7 +17,7 @@ public class RequestHandler extends RouterHandler {
 
 	@Override
 	public String handle(String message, AsynchronousSocketChannel socket) {
-		if (message.contains("request#")) {
+		try {
 			String id = message.split("#")[1];
 			Future<Integer> readResult;
 			String response;
@@ -27,9 +31,21 @@ public class RequestHandler extends RouterHandler {
 			}
 			response = new String(buffer.array()).trim();
 			buffer.clear();
-			return nextHandler.handle(response, socket);
-		} else {
-			return nextHandler.handle(message, socket);
+
+			FixMessage fixMessage = new FixMessage(response, true);
+			fixMessage.verifyChecksum();
+			String target = fixMessage.getTargetId();
+			AsynchronousSocketChannel targetSocket = routingTable.get(target);
+			if (targetSocket == null) {
+				return nextHandler.handle(
+						"[ERROR] failed to send a request: market with such id [" + target + "] is not available",
+						socket);
+			}
+			Utils.sendRequest(response, targetSocket);
+			return "[INFO] message successfully sent to market " + target;
+
+		} catch (InvalidFixMessage | IndexOutOfBoundsException e) {
+			return nextHandler.handle("[ERROR] failed to send a request: " + e.getMessage(), socket);
 		}
 	}
 }
