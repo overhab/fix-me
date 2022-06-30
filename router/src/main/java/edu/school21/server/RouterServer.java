@@ -17,6 +17,7 @@ public class RouterServer {
     private AsynchronousServerSocketChannel marketServer;
     private AsynchronousServerSocketChannel brokerServer;
     private final Map<String, AsynchronousSocketChannel> routingTable = new HashMap<>();
+    private final Map<String, String> ongoingRequests = new HashMap<>();
 
     public RouterServer() {
     }
@@ -39,7 +40,7 @@ public class RouterServer {
 
             System.out.println("listening on ports 5000 and 5001");
 
-            Handler<String> handler = initHandlers(routingTable);
+            Handler<String> handler = initHandlers();
 
             brokerServer.accept(null, new RouterConnectionHandler(routingTable, brokerServer, handler));
             marketServer.accept(null, new RouterConnectionHandler(routingTable, marketServer, handler));
@@ -56,10 +57,10 @@ public class RouterServer {
         marketServer.close();
     }
 
-    public Handler<String> initHandlers(Map<String, AsynchronousSocketChannel> routingTable) {
-        Handler<String> requestHandler = new RequestHandler(HandlerType.REQUEST, routingTable);
-        Handler<String> errorHandler = new ErrorHandler(HandlerType.ERROR, routingTable);
-        Handler<String> disconnectHandler = new DisconnectHandler(HandlerType.DISCONNECT, routingTable);
+    public Handler<String> initHandlers() {
+        Handler<String> requestHandler = new RequestHandler(HandlerType.REQUEST, routingTable, ongoingRequests);
+        Handler<String> errorHandler = new ErrorHandler(HandlerType.ERROR, routingTable, ongoingRequests);
+        Handler<String> disconnectHandler = new DisconnectHandler(HandlerType.DISCONNECT, routingTable, ongoingRequests);
 
         requestHandler.setNextHandler(errorHandler);
         errorHandler.setNextHandler(disconnectHandler);

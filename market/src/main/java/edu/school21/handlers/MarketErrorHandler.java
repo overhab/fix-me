@@ -14,7 +14,7 @@ public class MarketErrorHandler extends MarketHandler{
 	}
 
 	@Override
-	public String handle(FixMessage message, AsynchronousSocketChannel socket) {
+	public String handle(FixMessage fixMessage, AsynchronousSocketChannel socket) {
 		String errorMessage = "";
 
 		if (ERROR_CODE == 1) {
@@ -25,7 +25,9 @@ public class MarketErrorHandler extends MarketHandler{
 			errorMessage = "[ERROR] Null pointer exception";
 		}
 
-		Utils.sendRequest(errorMessage, socket);
+		fixMessage.setStatus(8);
+		fixMessage.prepareResponse();
+		Utils.sendRequest(fixMessage.getFixMessage(), socket);
 
 		return errorMessage;
 	}

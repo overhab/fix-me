@@ -2,6 +2,7 @@ package edu.school21.repositories;
 
 import edu.school21.models.Stock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -23,6 +24,9 @@ public class StockRepositoryImpl implements StockRepository{
 	}
 
 	private final RowMapper<Stock> stockRowMapper = (ResultSet resultSet, int i) -> {
+		if (!resultSet.next()) {
+			return null;
+		}
 		return new Stock(resultSet.getLong("id"),
 				resultSet.getString("name"),
 				resultSet.getInt("quantity"),
@@ -66,7 +70,11 @@ public class StockRepositoryImpl implements StockRepository{
 
 	@Override
 	public Stock findByName(String name) {
-		return jdbcTemplate.queryForObject("select * from stocks where name = :name",
-				new MapSqlParameterSource("name", name), stockRowMapper);
+		try {
+			return jdbcTemplate.queryForObject("select * from stocks where name = :name",
+					new MapSqlParameterSource("name", name), stockRowMapper);
+		} catch (DataAccessException e) {
+			return null;
+		}
 	}
 }

@@ -29,7 +29,7 @@ public class MarketClient extends Client<FixMessage> {
 	}
 
 	private void waitForRequest() throws IOException {
-		System.out.println("Stocks available: " + market.getStocks());
+		System.out.println("Market: " + id + ". Stocks available: " + market.getStocks());
 		while (true) {
 			String req = Utils.getResponse(client);
 			FixMessage fixMessage = new FixMessage(req, true);

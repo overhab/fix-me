@@ -79,10 +79,11 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <outputDirectory>../</outputDirectory>
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        edu.school21.app.Application
+                                        edu.school21.app.BrokerApp
                                     </mainClass>
                                 </manifest>
                             </archive>

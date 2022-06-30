@@ -25,7 +25,7 @@ public class Market {
                 return s;
             }
         }
-        return null;
+        return "";
     }
 
     @Override

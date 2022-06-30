@@ -103,4 +103,11 @@ public class FixMessage {
             throw new InvalidFixMessage("checksum do not match");
         }
     }
+
+    public void prepareResponse() {
+        String from = getSenderId();
+        setSenderId(getTargetId());
+        setTargetId(from);
+        parseFixMessage();
+    }
 }

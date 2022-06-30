@@ -11,8 +11,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class RequestHandler extends RouterHandler {
-	public RequestHandler(int type, Map<String, AsynchronousSocketChannel> routingTable) {
-		super(type, routingTable);
+	public RequestHandler(int type, Map<String, AsynchronousSocketChannel> routingTable, Map<String, String> ongoingRequests) {
+		super(type, routingTable, ongoingRequests);
 	}
 
 	@Override
@@ -32,6 +32,7 @@ public class RequestHandler extends RouterHandler {
 			response = new String(buffer.array()).trim();
 			buffer.clear();
 
+			System.out.println(response);
 			FixMessage fixMessage = new FixMessage(response, true);
 			fixMessage.verifyChecksum();
 			String target = fixMessage.getTargetId();
@@ -42,7 +43,8 @@ public class RequestHandler extends RouterHandler {
 						socket);
 			}
 			Utils.sendRequest(response, targetSocket);
-			return "[INFO] message successfully sent to market " + target;
+			ongoingRequests.put(target, id);
+			return "[INFO] message successfully sent to " + target;
 
 		} catch (InvalidFixMessage | IndexOutOfBoundsException e) {
 			return nextHandler.handle("[ERROR] failed to send a request: " + e.getMessage(), socket);

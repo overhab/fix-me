@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class ErrorHandler extends RouterHandler {
 
-	public ErrorHandler(int type, Map<String, AsynchronousSocketChannel> routingTable) {
-		super(type, routingTable);
+	public ErrorHandler(int type, Map<String, AsynchronousSocketChannel> routingTable, Map<String, String> ongoingRequests) {
+		super(type, routingTable, ongoingRequests);
 	}
 
 	@Override

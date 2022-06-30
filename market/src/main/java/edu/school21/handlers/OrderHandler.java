@@ -17,11 +17,12 @@ public class OrderHandler extends MarketHandler {
 	@Override
 	public String handle(FixMessage fixMessage, AsynchronousSocketChannel socket) {
 		try {
-			Stock stock = marketService.findStockByName(fixMessage.getInstrument());
-			if (stock == null) {
+			String stockName = fixMessage.getInstrument();
+			if (market.findStock(stockName).isEmpty()) {
 				ERROR_CODE = 1; // instrument not found
 				return nextHandler.handle(fixMessage, socket);
 			}
+			Stock stock = marketService.findStockByName(fixMessage.getInstrument());
 
 			if (stock.getQuantity() < fixMessage.getQuantity()) {
 				fixMessage.setStatus(8);
@@ -35,10 +36,7 @@ public class OrderHandler extends MarketHandler {
 				fixMessage.setStatus(2);
 			}
 
-			String from = fixMessage.getSenderId();
-			fixMessage.setSenderId(fixMessage.getTargetId());
-			fixMessage.setTargetId(from);
-			fixMessage.parseFixMessage();
+			fixMessage.prepareResponse();
 			Utils.sendRequest(fixMessage.getFixMessage(), socket);
 			return "Order " + fixMessage.getOrderId() + " completed. " +
 					"Status: " + ((fixMessage.getStatus() == 8) ? "rejected" : "executed");
