@@ -2,6 +2,7 @@ package edu.school21.server;
 
 import edu.school21.handlers.*;
 import edu.school21.listeners.ServerListener;
+import edu.school21.utils.FileLog;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -50,9 +51,11 @@ public class RouterServer {
         } catch (IOException | InterruptedException ex) {
             marketServer.close();
             brokerServer.close();
+            FileLog.close();
             ex.printStackTrace(System.out);
         }
 
+        FileLog.close();
         brokerServer.close();
         marketServer.close();
     }

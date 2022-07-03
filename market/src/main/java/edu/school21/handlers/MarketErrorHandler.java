@@ -29,6 +29,7 @@ public class MarketErrorHandler extends MarketHandler{
 		fixMessage.prepareResponse();
 		Utils.sendRequest(fixMessage.getFixMessage(), socket);
 
-		return errorMessage;
+		System.out.println(errorMessage);
+		return "Rejected";
 	}
 }

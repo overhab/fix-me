@@ -4,9 +4,12 @@ import edu.school21.exceptions.InvalidFixMessage;
 import edu.school21.handlers.Handler;
 import edu.school21.models.Client;
 import edu.school21.models.FixMessage;
+import edu.school21.utils.FileLog;
 import edu.school21.utils.Utils;
+
 import java.io.IOException;
 import java.util.InputMismatchException;
+import java.util.Random;
 import java.util.Scanner;
 
 public class BrokerClient extends Client {
@@ -18,6 +21,40 @@ public class BrokerClient extends Client {
 
     public void start() throws IOException {
         sendMessages();
+    }
+
+    public void autoSend(int count) throws IOException {
+        String[] stockNames = {"Apple", "Gold", "Microsoft", "Tesla",
+                "Visa", "Nvidia", "Intel", "Apple", "Amazon"};
+        Random random = new Random();
+
+        for (int i = 0; i < count; i++) {
+            int quantity = random.nextInt(50);
+            String stockName = stockNames[random.nextInt(stockNames.length)];
+            String message = stockName + "#" + (random.nextInt(100) < 50 ? "buy" : "sell") + "#" + quantity + "#2.2#"
+                    + (random.nextInt(100) < 50 ? "777000" : "777001") + "#" + id;
+
+            try {
+                fixMessage = new FixMessage(message);
+                fixMessage.parseFixMessage();
+            } catch (InputMismatchException | NumberFormatException | InvalidFixMessage e) {
+                FileLog.LogMessage("[ERROR]: " + e.getMessage());
+                break ;
+            }
+//            FileLog.LogMessage(id + " sending: " + fixMessage.getFixMessage());
+            Utils.sendRequest(fixMessage.getFixMessage(), client);
+            String response = Utils.getResponse(client);
+            int code = processResponse(response);
+            if (code == 2) {
+                FileLog.LogMessage(id + " Executed");
+            } else if (code == 8) {
+                FileLog.LogMessage(id + " Rejected");
+            } else {
+                FileLog.LogMessage(id + " " + response);
+            }
+        }
+        FileLog.close();
+        client.close();
     }
 
     private void sendMessages() throws IOException {

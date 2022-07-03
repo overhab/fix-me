@@ -11,7 +11,11 @@ public class BrokerApp {
             BrokerClient brokerClient = new BrokerClient();
 
             brokerClient.init(5000);
-            brokerClient.start();
+            if (args.length == 1) {
+                brokerClient.autoSend(Integer.parseInt(args[0]));
+            } else {
+                brokerClient.start();
+            }
         }
         catch (IOException e) {
             e.printStackTrace();

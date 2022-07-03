@@ -6,5 +6,9 @@ fix-me.iml
 /utils/src/main/java/edu/school21/app/
 /router/src/main/resources/db.properties
 /market/src/main/resources/db.properties
+market-client.jar
+broker-client.jar
+router-client.jar
 /.idea
 todo.txt
+fix-me.txt

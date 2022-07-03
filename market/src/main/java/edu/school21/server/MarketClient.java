@@ -5,6 +5,7 @@ import edu.school21.models.FixMessage;
 import edu.school21.models.Market;
 import edu.school21.service.MarketService;
 import edu.school21.models.Client;
+import edu.school21.service.TransactionService;
 import edu.school21.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,12 +16,14 @@ import java.io.IOException;
 public class MarketClient extends Client<FixMessage> {
 
 	private Market market;
-	private MarketService marketService;
+	private final MarketService marketService;
+	private final TransactionService transactionService;
 
 	@Autowired
-	public MarketClient(MarketService marketService) {
+	public MarketClient(MarketService marketService, TransactionService transactionService) {
 		this.marketService = marketService;
 		this.market = marketService.createMarket();
+		this.transactionService = transactionService;
 	}
 
 	public void start() throws IOException {
@@ -32,9 +35,12 @@ public class MarketClient extends Client<FixMessage> {
 		System.out.println("Market: " + id + ". Stocks available: " + market.getStocks());
 		while (true) {
 			String req = Utils.getResponse(client);
+			System.out.println("Got for market: " + id + " - " + req);
 			FixMessage fixMessage = new FixMessage(req, true);
 			String status = handler.handle(fixMessage, client);
-			System.out.println(status);
+			System.out.println("Order " + fixMessage.getOrderId() + " completed. " +
+					"Status: " + status);
+			transactionService.createTransaction(transactionService.prepareTransaction(fixMessage, status));
 		}
 	}
 

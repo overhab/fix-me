@@ -1,6 +1,10 @@
 package edu.school21.utils;
 
+import edu.school21.exceptions.ConnectionUnavailable;
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
@@ -17,9 +21,10 @@ public class Utils {
 		byteCount = channel.write(buffer);
 
 		try {
-			System.out.println("SENDING MESSAGE: [" + msg + "]\nbytes: " + byteCount.get() + "\n-----------------");
-		} catch (ExecutionException | InterruptedException e) {
-			e.printStackTrace();
+//			System.out.println("SENDING MESSAGE: [" + msg + "]\nbytes: " + byteCount.get() + "\n-----------------");
+			FileLog.LogMessage("SENDING MESSAGE: [" + msg + "]bytes: " + byteCount.get());
+		} catch (ExecutionException | InterruptedException | IOException e) {
+			throw new ConnectionUnavailable(e.getMessage());
 		}
 
 		buffer.clear();
@@ -38,6 +43,16 @@ public class Utils {
 		}
 
 		response = new String(buffer.array()).trim();
+		buffer.flip();
+		buffer.clear();
 		return response;
+	}
+
+	public static int getPort(SocketAddress address) throws IOException {
+		if (address instanceof InetSocketAddress) {
+			return ((InetSocketAddress) address).getPort();
+		} else {
+			throw new IOException("Unknown address type");
+		}
 	}
 }

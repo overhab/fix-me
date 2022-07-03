@@ -38,8 +38,7 @@ public class OrderHandler extends MarketHandler {
 
 			fixMessage.prepareResponse();
 			Utils.sendRequest(fixMessage.getFixMessage(), socket);
-			return "Order " + fixMessage.getOrderId() + " completed. " +
-					"Status: " + ((fixMessage.getStatus() == 8) ? "rejected" : "executed");
+			return (fixMessage.getStatus() == 2) ? "Executed" : "Rejected";
 
 		} catch (NullPointerException e) {
 			e.printStackTrace();

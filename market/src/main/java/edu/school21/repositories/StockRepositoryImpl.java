@@ -10,7 +10,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component("stockRepository")
@@ -24,16 +23,11 @@ public class StockRepositoryImpl implements StockRepository{
 	}
 
 	private final RowMapper<Stock> stockRowMapper = (ResultSet resultSet, int i) -> {
-		if (!resultSet.next()) {
-			return null;
-		}
 		return new Stock(resultSet.getLong("id"),
 				resultSet.getString("name"),
 				resultSet.getInt("quantity"),
 				resultSet.getFloat("price"));
 	};
-
-
 
 	@Override
 	public Stock findById(Long id) {
