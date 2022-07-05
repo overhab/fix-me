@@ -14,7 +14,12 @@ public class MarketErrorHandler extends MarketHandler{
 	}
 
 	@Override
-	public String handle(FixMessage fixMessage, AsynchronousSocketChannel socket) {
+	public String handle(FixMessage fixMessage, AsynchronousSocketChannel socket, int handler) {
+		if (fixMessage == null) {
+			Utils.sendRequest("Fatal error: wrong fix message format", socket);
+			return "Rejected";
+		}
+
 		String errorMessage = "";
 
 		if (ERROR_CODE == 1) {

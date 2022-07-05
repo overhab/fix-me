@@ -12,9 +12,9 @@ public class ErrorHandler extends RouterHandler {
 	}
 
 	@Override
-	public String handle(String message, AsynchronousSocketChannel socket) {
-		if (message.contains("disconnect#")) {
-			return nextHandler.handle(message, socket);
+	public String handle(String message, AsynchronousSocketChannel socket, int handler) {
+		if (handler == HandlerType.DISCONNECT) {
+			return nextHandler.handle(message, socket, handler);
 		}
 		Utils.sendRequest(message, socket);
 		return message;

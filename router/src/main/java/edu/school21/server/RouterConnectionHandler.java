@@ -1,9 +1,11 @@
 package edu.school21.server;
 
 import edu.school21.handlers.Handler;
+import edu.school21.handlers.HandlerType;
 import edu.school21.utils.Utils;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
@@ -12,11 +14,12 @@ import java.util.concurrent.*;
 
 public class RouterConnectionHandler implements CompletionHandler<AsynchronousSocketChannel, Void> {
 
+	private static int id = 777000;
 	private final Map<String, AsynchronousSocketChannel> routingTable;
 	private final AsynchronousServerSocketChannel server;
-	private static int id = 777000;
+	private final Handler<String> handler;
 	private Future<String> submit;
-	private Handler<String> handler;
+	private ByteBuffer buffer;
 
 	public RouterConnectionHandler(Map<String, AsynchronousSocketChannel> routingTable,
 								   AsynchronousServerSocketChannel server,
@@ -43,19 +46,12 @@ public class RouterConnectionHandler implements CompletionHandler<AsynchronousSo
 		System.out.println("Connected: " + id + " - port " + port);
 
 		Worker worker = new Worker(client, id, port, handler);
-
 		String response;
 
 		while (true) {
-			submit = Executors.newSingleThreadExecutor().submit(worker);
-			try {
-				response = submit.get();
-				System.out.println(response);
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-				break ;
-			}
-			if (!routingTable.containsKey(String.valueOf(worker.getId()))) {
+			response = worker.call();
+			System.out.println(response);
+			if (response.isEmpty() || !routingTable.containsKey(String.valueOf(worker.getId()))) {
 				break ;
 			}
 		}

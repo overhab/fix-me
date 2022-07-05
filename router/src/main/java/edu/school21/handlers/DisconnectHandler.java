@@ -11,11 +11,13 @@ public class DisconnectHandler extends RouterHandler {
 	}
 
 	@Override
-	public String handle(String message, AsynchronousSocketChannel socket) {
-		String[] split = message.split("#");
-		String id = split[1];
+	public String handle(String id, AsynchronousSocketChannel socket, int handler) {
+		if (id.isEmpty()) {
+			return "";
+		}
 		if (ongoingRequests.containsKey(id)) {
-			Utils.sendRequest("[ERROR] market " + id + " is unavailable", routingTable.get(ongoingRequests.get(id)));
+			Utils.sendRequest("[ERROR] market " + id + " is unavailable",
+					routingTable.get(ongoingRequests.get(id)));
 		}
 		routingTable.remove(id);
 		ongoingRequests.remove(id);

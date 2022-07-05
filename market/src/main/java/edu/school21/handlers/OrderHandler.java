@@ -6,6 +6,7 @@ import edu.school21.models.Stock;
 import edu.school21.service.MarketService;
 import edu.school21.utils.Utils;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 
 public class OrderHandler extends MarketHandler {
@@ -15,12 +16,16 @@ public class OrderHandler extends MarketHandler {
 	}
 
 	@Override
-	public String handle(FixMessage fixMessage, AsynchronousSocketChannel socket) {
+	public String handle(FixMessage fixMessage, AsynchronousSocketChannel socket, int handler) {
+		if (handler == HandlerType.ERROR) {
+			return nextHandler.handle(null, socket, handler);
+		}
+
 		try {
 			String stockName = fixMessage.getInstrument();
 			if (market.findStock(stockName).isEmpty()) {
 				ERROR_CODE = 1; // instrument not found
-				return nextHandler.handle(fixMessage, socket);
+				return nextHandler.handle(fixMessage, socket, HandlerType.ERROR);
 			}
 			Stock stock = marketService.findStockByName(fixMessage.getInstrument());
 
@@ -43,7 +48,7 @@ public class OrderHandler extends MarketHandler {
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 			ERROR_CODE = 2; // No stock found
-			return nextHandler.handle(fixMessage, socket);
+			return nextHandler.handle(fixMessage, socket, HandlerType.ERROR);
 		}
 	}
 }

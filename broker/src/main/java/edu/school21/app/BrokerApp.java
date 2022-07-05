@@ -20,5 +20,6 @@ public class BrokerApp {
         catch (IOException e) {
             e.printStackTrace();
         }
+        System.exit(0);
     }
 }

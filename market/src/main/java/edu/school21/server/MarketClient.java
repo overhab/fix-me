@@ -1,5 +1,6 @@
 package edu.school21.server;
 
+import edu.school21.exceptions.InvalidFixMessage;
 import edu.school21.handlers.*;
 import edu.school21.models.FixMessage;
 import edu.school21.models.Market;
@@ -15,7 +16,7 @@ import java.io.IOException;
 @Component
 public class MarketClient extends Client<FixMessage> {
 
-	private Market market;
+	private final Market market;
 	private final MarketService marketService;
 	private final TransactionService transactionService;
 
@@ -36,8 +37,14 @@ public class MarketClient extends Client<FixMessage> {
 		while (true) {
 			String req = Utils.getResponse(client);
 			System.out.println("Got for market: " + id + " - " + req);
-			FixMessage fixMessage = new FixMessage(req, true);
-			String status = handler.handle(fixMessage, client);
+			try {
+				fixMessage = new FixMessage(req, true);
+			} catch (InvalidFixMessage | IndexOutOfBoundsException e) {
+				e.printStackTrace();
+				handler.handle(null, client, HandlerType.ERROR);
+				continue ;
+			}
+			String status = handler.handle(fixMessage, client, HandlerType.ORDER);
 			System.out.println("Order " + fixMessage.getOrderId() + " completed. " +
 					"Status: " + status);
 			transactionService.createTransaction(transactionService.prepareTransaction(fixMessage, status));

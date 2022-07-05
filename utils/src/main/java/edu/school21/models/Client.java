@@ -5,6 +5,7 @@ import edu.school21.utils.Utils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -16,6 +17,7 @@ public abstract class Client<T> {
 	protected AsynchronousSocketChannel client;
 	protected FixMessage fixMessage = new FixMessage();
 	protected Handler<T> handler;
+	protected ByteBuffer buffer;
 
 	public Client() {
 	}

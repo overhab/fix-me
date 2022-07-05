@@ -15,5 +15,6 @@ public class MarketApp {
 
         marketClient.init(5001);
         marketClient.start();
+        System.exit(0);
     }
 }

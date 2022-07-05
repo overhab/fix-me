@@ -29,11 +29,9 @@ public class RouterServer {
             System.out.println("Starting server...");
 
             brokerServer = AsynchronousServerSocketChannel.open();
-            brokerServer.setOption(StandardSocketOptions.SO_REUSEADDR, true);
             brokerServer.bind(new InetSocketAddress("localhost", 5000));
 
             marketServer = AsynchronousServerSocketChannel.open();
-            marketServer.setOption(StandardSocketOptions.SO_REUSEADDR, true);
             marketServer.bind(new InetSocketAddress("localhost",5001));
 
             Thread listener = new Thread(new ServerListener(marketServer, brokerServer));
@@ -61,13 +59,15 @@ public class RouterServer {
     }
 
     public Handler<String> initHandlers() {
-        Handler<String> requestHandler = new RequestHandler(HandlerType.REQUEST, routingTable, ongoingRequests);
+        Handler<String> acceptRequestHandler = new AcceptRequestHandler(HandlerType.REQUEST, routingTable, ongoingRequests);
+        Handler<String> fixMessageHandler = new FixMessageHandler(HandlerType.MESSAGE, routingTable, ongoingRequests);
         Handler<String> errorHandler = new ErrorHandler(HandlerType.ERROR, routingTable, ongoingRequests);
         Handler<String> disconnectHandler = new DisconnectHandler(HandlerType.DISCONNECT, routingTable, ongoingRequests);
 
-        requestHandler.setNextHandler(errorHandler);
+        acceptRequestHandler.setNextHandler(fixMessageHandler);
+        fixMessageHandler.setNextHandler(errorHandler);
         errorHandler.setNextHandler(disconnectHandler);
 
-        return requestHandler;
+        return acceptRequestHandler;
     }
 }

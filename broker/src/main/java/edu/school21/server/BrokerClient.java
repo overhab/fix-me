@@ -12,7 +12,7 @@ import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
 
-public class BrokerClient extends Client {
+public class BrokerClient extends Client<String> {
 
     private final Scanner scanner = new Scanner(System.in);
 

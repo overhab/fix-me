@@ -8,7 +8,6 @@ public abstract class MarketHandler extends Handler<FixMessage> {
 
 	protected MarketService marketService;
 	protected Market market;
-	protected static int ERROR_CODE = 0;
 
 	public MarketHandler(int type, MarketService marketService, Market market) {
 		super(type);
